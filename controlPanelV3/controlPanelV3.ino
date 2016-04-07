@@ -1,40 +1,49 @@
-//  Control Panel Generation 3 Version 8 Revision 0 (3.8.0)
-//  Last Updated: 7/2/2015
+//  Control Panel Generation 4 Version 0 Revision 0 (3.9.1)
+//  Last Updated: 10/9/2015
 //  Matt Stetson
 
-char* creditMessage[] = {"Control Panel Version 3.8.0", "Last Updated: 7/2/2015"};
+#include <Arduino.h>
 
-#include <SoftwareSerial.h>
+char* creditMessage[] = {"Control Panel Version 3.9.1", "Last Updated: 10/9/2015"};
 
-SoftwareSerial mySerial(0,39);
+//#include <SoftwareSerial.h>
 
+//SoftwareSerial mySerial(0,39);
+
+//Pilot Lights:
 const int manualLed = 27;
+const int powerLed = 28;
+//Keyswitches:
 const int autoKeyswitch = 22;
 const int bypassKeyswitch = 23;
 const int powerKeyswitch = 24;
-const int eStopLed = 42;
-const int eStopButton = 44;
-const int acknowledgeButton = 37;
-const int startLed = 33;
-const int gateSwitch = 51;
-const int restraintsButton = 50;
-const int startButton = 32;
-const int dispatchRightButton = 48;
-const int powerLed = 28;
-const int restraintsLed = 30;
-const int acknowledgeLed = 29;
-const int dispatchRightLed = 49;
-const int dispatchLeftLed = 25;
-const int dispatchLeftButton = 26;
 const int functionEnable = 43;
-const int troubleLed = 40;
-const int troubleButton = 41;
-const int speakerPin = 12;
-const int rideStopButton = 47;
-const int rideStopLed = 46;
+//Normal Switches:
 const int typeOneSwitch = 38;
 const int typeThreeSwitch = 21;
+const int gateSwitch = 51;  //WIRED TO: ?open or closed?
+//Misc:
+const int speakerPin = 12;
+//Buttons & Button LEDS
+const int eStopButton = 44;
+const int eStopLed = 42;
+const int acknowledgeButton = 37;
+const int acknowledgeLed = 29;
+const int startButton = 32;
+const int startLed = 33;
+const int restraintsButton = 50;
+const int restraintsLed = 30;
+const int dispatchRightButton = 48;
+const int dispatchRightLed = 49;
+const int dispatchLeftButton = 26;
+const int dispatchLeftLed = 25;
+const int troubleButton = 41;
+const int troubleLed = 40;
+const int rideStopButton = 47;
+const int rideStopLed = 46;
 
+
+//KEYBOARD COMMUNICATIONS:
 const int keyboardEstop = 35;
 const int keyboardDispatch = 20;
 const int keyboardOpenGates = 2;
@@ -47,8 +56,8 @@ const int keyboardLockFlyer = 8;
 const int keyboardUnlockFlyer = 9;
 const int keyboardOpenPanel = 10;
 const int checkConnectionOut = 14;
-//const int checkConnectionIn = ;
 
+//Button States:
 int dispatchLeftButtonState = 0;
 int dispatchRightButtonState = 0;
 int eStopButtonState = 0;
@@ -98,8 +107,6 @@ long longInterval = 1000;
 long shortInterval = 500;
 long shorterInterval = 250;
 long shortestInverval = 100;
-
-//boolean noLimitsStarted = false;
 
 boolean gateOpen = false;
 boolean restraintsOpen = false;
@@ -202,7 +209,7 @@ int powerLedFlashes = 58;
 void setup() {
 
   Serial.begin(9600);
-  mySerial.begin(9600);
+  
   pinMode(dispatchLeftLed, OUTPUT);
   pinMode(dispatchRightLed, OUTPUT);
   pinMode(eStopLed, OUTPUT);
@@ -293,12 +300,16 @@ void loop() {
   unsigned long currentMillis = millis();
   int countDown = timeOut * 2;
 
+//Ensures that speaker turns off when E-stop is pressed
+//and that the E-STOP led stays on when depressed
   if (eStopButtonState == LOW) {
     noTone(speakerPin);
     digitalWrite(eStopLed, HIGH);
   }
 
   if (booted == false) {
+
+//Displays Message on Bootup
     if (powerOnSerial == false) {
       
       Serial.println(F(" "));
@@ -319,30 +330,12 @@ void loop() {
       Serial.println(F("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"));
       Serial.println(F(" "));
       
-      mySerial.write(254); 
-      mySerial.write(128);
-      mySerial.write("                "); 
-      mySerial.write("                ");
-      mySerial.write(254); 
-      mySerial.write(128);
-      mySerial.write("PANEL V:3.8.0   ");
-      mySerial.write("MATT STETSON");
-      mySerial.write(254); 
-      mySerial.write(128);
       
       powerOnSerial = true;
       delay(1000);
       if (powerKeyswitchState != 0) {
         Serial.println(F("STATUS OO1: Panel is off. Turn CONTROL PANEL POWER on to begin."));
         
-      mySerial.write("                "); 
-      mySerial.write("                ");
-      mySerial.write(254); 
-      mySerial.write(128);
-      mySerial.write("PANEL is off.   ");
-      mySerial.write("TURN PANEL ON");
-      mySerial.write(254); 
-      mySerial.write(128);
       
       }
     }
@@ -370,14 +363,6 @@ void loop() {
       eStopReset = false;
       if (poweredOffMessage == false) {
         Serial.println(F("STATUS 002: MAIN OP PANEL: POWER KEY switched to OFF."));
-      mySerial.write("                "); 
-      mySerial.write("                ");
-      mySerial.write(254); 
-      mySerial.write(128);
-      mySerial.write("MAIN OP KEY OFF");
-      mySerial.write("TURN PANEL ON");
-      mySerial.write(254); 
-      mySerial.write(128);
         poweredOffMessage = true;
       }
       noTone(speakerPin);
@@ -423,21 +408,11 @@ void loop() {
       */
     }
   }
-  /*
-  if (timeOut == 100) {
-    //error = true;
-    started = false;
-    //ledsOff();
-    //errorCode = 021;
-    digitalWrite(dispatchLeftLed, LOW);
-    digitalWrite(dispatchRightLed, LOW);
-    timeOut = 0;
 
-  }
-  */
 
 }
 
+//What to do if panel is on:
 void poweredOn() {
   if (eStopButtonState == LOW) {
     if (eStopPressed == false) {
@@ -453,9 +428,7 @@ void poweredOn() {
       if (keyboardEstopSent == false) {
         digitalWrite(keyboardEstop, HIGH);
         delay(10);
-        //Serial.println("keyboardEstop = High (error)");
         digitalWrite(keyboardEstop, LOW);
-        //Serial.println("keyboardEstop = low (error)");
         keyboardEstopSent = true;
       }
 
@@ -512,6 +485,7 @@ void poweredOn() {
 
 }
 
+//FOLLOWING ARE OPERATIONAL FUNCTIONS:
 void restraints() {
 
   if (restraintsButtonState == LOW) {
@@ -596,14 +570,6 @@ void gate() {
           gateOpen = true;
           digitalWrite(dispatchLeftLed, LOW);
           Serial.println(F("STATUS 016: AIR GATES OPEN. CLOSE GATES TO DISPATCH TRAIN."));
-           mySerial.write("                "); 
-          mySerial.write("                ");
-          mySerial.write(254); 
-          mySerial.write(128);
-          mySerial.write("AIR GATES OPEN");
-          mySerial.write("CLOSE TO DISPATCH");
-          mySerial.write(254); 
-          mySerial.write(128);
           digitalWrite(keyboardOpenGates, HIGH);
           delay(10);
           // Serial.println("open gates keyboard");
@@ -614,14 +580,6 @@ void gate() {
         else {
           gateOpen = false;
           Serial.println(F("STATUS 017: AIR GATES CLOSING."));
-           mySerial.write("                "); 
-      mySerial.write("                ");
-      mySerial.write(254); 
-      mySerial.write(128);
-      mySerial.write("AIR GATES CLOSED");
-      //mySerial.write("TURN PANEL ON");
-      mySerial.write(254); 
-      mySerial.write(128);
           digitalWrite(keyboardCloseGates, HIGH);
           delay(10);
           //  Serial.println("close gates keyboard");
@@ -660,10 +618,6 @@ void gate() {
   }
 
 }
-
-
-
-
 
 void autoAcknowledge() {
   unsigned long currentRideStopMillis = millis();
@@ -792,7 +746,6 @@ void rideStop() {
 
 
 }
-
 
 void dispatchButtons() {
   unsigned long currentMillis = millis();
@@ -1288,7 +1241,7 @@ void dispatchButtons() {
   }
 }
 
-
+//Actually dispatches the trains
 void dispatch() {
   if (dispatching == false) {
     digitalWrite(keyboardDispatch, HIGH);
@@ -1300,21 +1253,7 @@ void dispatch() {
 
 }
 
-
-
-
 //////////////////////////////////////
-
-
-
-
-
-
-
-
-
-
-
 
 void eStopPress() {
   unsigned long currentMillis = millis();
@@ -1549,11 +1488,6 @@ void errorReset() {
 }
 
 
-
-
-
-
-
 void acknowledgeError() {
   unsigned long currentMillis = millis();
 
@@ -1676,6 +1610,7 @@ void acknowledgeError() {
 
 
 }
+
 
 void manualIndicator() {
   unsigned long manualMillis = millis();
